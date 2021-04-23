@@ -60,14 +60,21 @@ void Tetromino::set_block_type(BlockType type)
     this->type = type;
 }
 
-void Tetromino::move_down()
-{
-    this->local_position.y -= 1;
-}
-
 BlockType Tetromino::get_block_type() const
 {
     return this->type;
+}
+
+void Tetromino::set_position(int x, int y)
+{
+    this->local_position.x = x;
+    this->local_position.y = -y;
+    
+}
+
+void Tetromino::move(const glm::vec2& offset)
+{
+    this->local_position += offset;
 }
 
 void Tetromino::generate_new_random(Tetromino& tetromino)
@@ -97,4 +104,5 @@ void Tetromino::generate_new_random(Tetromino& tetromino)
 
     tetromino.set_block_type(randomBlock);
     tetromino.set_color(randomColor);
+    tetromino.set_position(TetrisField::width / 2, TetrisField::height);
 }

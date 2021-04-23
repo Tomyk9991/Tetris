@@ -11,8 +11,9 @@ public:
     const ofColor& get_color() const;
     void set_color(const ofColor& color);
     void set_block_type(BlockType type);
-    void move_down();
     BlockType get_block_type() const;
+    void set_position(int x, int y);
+    void move(const glm::vec2& offset);
     static void generate_new_random(Tetromino& tetromino);
 private:
     BlockType type = None;

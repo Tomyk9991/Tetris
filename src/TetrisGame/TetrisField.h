@@ -3,7 +3,6 @@
 
 #include "ofColor.h"
 #include "ofEvents.h"
-#include "ofShader.h"
 #include "Tetromino.h"
 
 class TetrisField
