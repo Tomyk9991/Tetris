@@ -22,18 +22,12 @@ void Tetromino::render()
             ofSetColor(isFilled ? this->color : ofColor(0, 0, 0, 0));
             ofDrawRectangle(gx + x * TetrisField::boxWidth, gy + y * TetrisField::boxHeight, TetrisField::boxWidth,
                             TetrisField::boxHeight);
-
-            // ofSetColor(ofColor::white);
-            // ofDrawBitmapString(std::to_string(i),
-            //                    gx + x * TetrisField::boxWidth + TetrisField::boxHeight / 2,
-            //                    gy + y * TetrisField::boxWidth + TetrisField::boxHeight / 2
-            // );
             i++;
         }
     }
 
 
-    const bool debug_draw = false;
+    const bool debug_draw = true;
     if(debug_draw)
     {
         ofSetColor(ofColor::red);
@@ -72,9 +66,90 @@ void Tetromino::set_position(int x, int y)
     
 }
 
-void Tetromino::move(const glm::vec2& offset)
+/// Moves the tetromino, if the bounds are not exceeded. In case the an other tetromino is hit
+/// or the bottom is reached, this function returns true
+bool Tetromino::move(const glm::vec2& offset, const ofColor* field, int fieldHeight)
 {
-    this->local_position += offset;
+    glm::vec2 newPos = this->local_position + offset;
+
+    bool returnValue = false;
+    bool foundInvalid = false;
+    int i = 0;
+    for (int y = 0; y < 2; ++y)
+    {
+        for (int x = 0; x < 4; ++x)
+        {
+            const bool isFilled = this->type & 1 << i;
+            if(isFilled)
+            {
+                int checkingX = newPos.x + x;
+                int checkingY = newPos.y + y;
+                
+                //x out of bounds
+                if(checkingX < 0 || checkingX > 8)
+                {
+                    foundInvalid = true;
+                    break;
+                }
+
+                //y out of bounds
+                if (checkingY > -1)
+                {
+                    returnValue = true;
+                    foundInvalid = true;
+                    break;
+                }
+            }
+            
+            i++;
+        }
+    }
+
+
+    if (!foundInvalid)
+    {
+        i = 4;
+        glm::vec2 pos = newPos;
+        pos.y = -pos.y;
+        pos.y -= 2;
+        std::cout << "x: " << pos.x << " y: " << pos.y << std::endl;
+        
+        for (int y = 0; y < 2; ++y)
+        {
+            for (int x = 0; x < 4; ++x)
+            {
+                //i = erst [4 - 7] dann [0 - 3]
+                const bool isFilled = this->type & 1 << i;
+                if(isFilled)
+                {
+                    //Field busy
+                    
+                    if (field[((int)pos.x + x) * fieldHeight + ((int)pos.y + y)] != ofColor(0, 0, 0, 0))
+                    {
+                        returnValue = true;
+                        foundInvalid = true;
+                        break;
+                    }
+                }
+
+                i++;
+                i %= 8;
+            }
+
+            if(returnValue) break;
+        }
+    }
+
+    
+    if(foundInvalid == false)
+        this->local_position = newPos;
+            
+    return returnValue;
+}
+
+const glm::vec2& Tetromino::get_position() const
+{
+    return this->local_position;
 }
 
 void Tetromino::generate_new_random(Tetromino& tetromino)
@@ -104,5 +179,5 @@ void Tetromino::generate_new_random(Tetromino& tetromino)
 
     tetromino.set_block_type(randomBlock);
     tetromino.set_color(randomColor);
-    tetromino.set_position(TetrisField::width / 2, TetrisField::height);
+    tetromino.set_position(TetrisField::width / 2, TetrisField::height - 2);
 }

@@ -6,9 +6,38 @@
 TetrisField::TetrisField()
 {
     this->currentTetromino.set_color(ofColor(0, 0, 0, 0));
-    this->gameField.fill(ofColor(0, 0, 0));
-    
+
+    for (int i = 0; i < width * height; ++i)
+    {
+        this->gameField[i].set(0, 0, 0, 0);
+    }
+
     ofAddListener(ofEvents().keyReleased, this, &TetrisField::key_pressed);
+
+    Tetromino::generate_new_random(this->currentTetromino);
+}
+
+void TetrisField::add_current_tetromino()
+{
+    
+    int i = 0;
+    glm::vec2 pos = this->currentTetromino.get_position();
+    pos.y = -pos.y;
+    pos.y -= 2;
+
+    for (int y = 2; y >= 0; --y)
+    {
+        for (int x = 0; x < 4; ++x)
+        {
+            const bool isFilled = this->currentTetromino.get_block_type() & 1 << i;
+            if(isFilled)
+            {
+                this->gameField[(pos.x + x) * height + (pos.y + y - 1)].set(this->currentTetromino.get_color());
+            }
+            
+            i++;
+        }
+    }
 }
 
 void TetrisField::update()
@@ -19,12 +48,16 @@ void TetrisField::update()
 
         if (this->currentTetromino.get_block_type() != BlockType::None)
         {
-            this->currentTetromino.move(glm::vec2(0, 1));
+            if (this->currentTetromino.move(glm::vec2(0, 1), this->gameField.data()))
+            {
+                add_current_tetromino();
+                Tetromino::generate_new_random(this->currentTetromino);
+            }
         }
     }
 }
 
-void TetrisField::draw_game_bounds(const ofColor& borderColor)
+void TetrisField::draw_game_bounds(const ofColor& borderColor) const
 {
     int offsetX = ofGetWidth() / 2 - (width + 2) / 2 * boxWidth;
     int offsetY = 10;
@@ -40,7 +73,7 @@ void TetrisField::draw_game_bounds(const ofColor& borderColor)
     ofDrawRectangle(offsetX + boxWidth * this->width, offsetY, boxHeight, boxHeight * this->height);
 }
 
-void TetrisField::draw_game_grid()
+void TetrisField::draw_game_grid() const
 {
     const int offsetX = ofGetWidth() / 2 - (width + 2) / 2 * boxWidth;
     const int offsetY = 10;
@@ -54,8 +87,7 @@ void TetrisField::draw_game_grid()
     for (int y = 1; y < height; ++y)
     {
         ofDrawLine(offsetX, offsetY + y * boxHeight, offsetX + width * this->boxWidth, offsetY + y * boxHeight);
-    }
-    
+    }   
 }
 
 void TetrisField::draw_game_field()
@@ -64,8 +96,11 @@ void TetrisField::draw_game_field()
     {
         for (int y = 0; y < height; ++y)
         {
-            ofSetColor(this->gameField[x * width + y]);
-            ofDrawRectangle(local_to_world(x, y), boxWidth, boxHeight);
+            ofSetColor(this->gameField[x * height + y]);
+            
+            int originX = ofGetWidth() / 2 - (width + 2) / 2 * boxWidth + boxWidth;
+            int originY = 10 + boxHeight * height - boxHeight * 2;
+            ofDrawRectangle(originX + x * boxWidth, originY - y * boxHeight, boxWidth, boxHeight);
         }
     }
 }
@@ -81,26 +116,19 @@ void TetrisField::draw()
 
 void TetrisField::key_pressed(ofKeyEventArgs& e)
 {
-    
-    if(e.keycode == ' ')
-    {
-        std::cout << "click space" << std::endl;
-        Tetromino::generate_new_random(this->currentTetromino);
-    }
-
     if (e.key == 'a' || e.key == ofKey::OF_KEY_LEFT)
     {
-        this->currentTetromino.move(glm::vec2(-1, 0));
+        this->currentTetromino.move(glm::vec2(-1, 0), this->gameField.data());
     }
     
     if (e.key == 'd' || e.key == ofKey::OF_KEY_RIGHT)
     {
-        this->currentTetromino.move(glm::vec2(1, 0));
+        this->currentTetromino.move(glm::vec2(1, 0), this->gameField.data());
     }
 
     if (e.key == 's' || e.key == ofKey::OF_KEY_DOWN)
     {
-        this->currentTetromino.move(glm::vec2(0, 1));
+        this->currentTetromino.move(glm::vec2(0, 1), this->gameField.data());
     }
 }
 

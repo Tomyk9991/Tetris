@@ -13,7 +13,8 @@ public:
     void set_block_type(BlockType type);
     BlockType get_block_type() const;
     void set_position(int x, int y);
-    void move(const glm::vec2& offset);
+    bool move(const glm::vec2& offset, const ofColor* field, int fieldHeight = 20);
+    const glm::vec2& get_position() const;
     static void generate_new_random(Tetromino& tetromino);
 private:
     BlockType type = None;

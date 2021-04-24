@@ -9,9 +9,10 @@ class TetrisField
 {
 public:
     TetrisField();
+    void add_current_tetromino();
     void update();
-    void draw_game_bounds(const ofColor& baseColor);
-    void draw_game_grid();
+    void draw_game_bounds(const ofColor& baseColor) const;
+    void draw_game_grid() const;
     void draw_game_field();
     void draw();
     void key_pressed(ofKeyEventArgs &e);
