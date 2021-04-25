@@ -182,6 +182,7 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ofApp.cpp" />
+    <ClCompile Include="src\TetrisGame\MoveResult.cpp" />
     <ClCompile Include="src\TetrisGame\TetrisField.cpp" />
     <ClCompile Include="..\..\..\addons\ofxGui\src\ofxBaseGui.cpp" />
     <ClCompile Include="..\..\..\addons\ofxGui\src\ofxButton.cpp" />
@@ -198,6 +199,7 @@
   <ItemGroup>
     <ClInclude Include="src\ofApp.h" />
     <ClInclude Include="src\TetrisGame\BlockType.h" />
+    <ClInclude Include="src\TetrisGame\MoveResult.h" />
     <ClInclude Include="src\TetrisGame\TetrisField.h" />
     <ClInclude Include="..\..\..\addons\ofxGui\src\ofxBaseGui.h" />
     <ClInclude Include="..\..\..\addons\ofxGui\src\ofxButton.h" />

@@ -9,12 +9,12 @@ void Tetromino::render()
 {
     glm::vec2 g = TetrisField::local_to_world(this->local_position.x, this->local_position.y);
 
-    
+
     float gx = g.x;
     float gy = g.y;
-    
+
     int i = 0;
-    for (int y = 0; y < 2; ++y)
+    for (int y = 0; y < 4; ++y)
     {
         for (int x = 0; x < 4; ++x)
         {
@@ -22,20 +22,22 @@ void Tetromino::render()
             ofSetColor(isFilled ? this->color : ofColor(0, 0, 0, 0));
             ofDrawRectangle(gx + x * TetrisField::boxWidth, gy + y * TetrisField::boxHeight, TetrisField::boxWidth,
                             TetrisField::boxHeight);
+
             i++;
         }
     }
 
 
     const bool debug_draw = true;
-    if(debug_draw)
+    if (debug_draw)
     {
         ofSetColor(ofColor::red);
 
         ofDrawLine(gx, gy, gx + TetrisField::boxWidth * 4, gy);
-        ofDrawLine(gx + TetrisField::boxWidth * 4, gy, gx + TetrisField::boxWidth * 4, gy + TetrisField::boxHeight * 2);
-        ofDrawLine(gx + TetrisField::boxWidth * 4, gy + TetrisField::boxHeight * 2, gx, gy + TetrisField::boxHeight * 2);
-        ofDrawLine(gx, gy + TetrisField::boxHeight * 2, gx, gy);
+        ofDrawLine(gx + TetrisField::boxWidth * 4, gy, gx + TetrisField::boxWidth * 4, gy + TetrisField::boxHeight * 4);
+        ofDrawLine(gx + TetrisField::boxWidth * 4, gy + TetrisField::boxHeight * 4, gx,
+                   gy + TetrisField::boxHeight * 4);
+        ofDrawLine(gx, gy + TetrisField::boxHeight * 4, gx, gy);
     }
 }
 
@@ -63,30 +65,27 @@ void Tetromino::set_position(int x, int y)
 {
     this->local_position.x = x;
     this->local_position.y = -y;
-    
 }
 
-/// Moves the tetromino, if the bounds are not exceeded. In case the an other tetromino is hit
-/// or the bottom is reached, this function returns true
-bool Tetromino::move(const glm::vec2& offset, const ofColor* field, int fieldHeight)
+const MoveResult& Tetromino::isValidMove(const glm::vec2& offset, const ofColor* field, int fieldHeight) const
 {
     glm::vec2 newPos = this->local_position + offset;
 
     bool returnValue = false;
     bool foundInvalid = false;
     int i = 0;
-    for (int y = 0; y < 2; ++y)
+    for (int y = 0; y < 4; ++y)
     {
         for (int x = 0; x < 4; ++x)
         {
             const bool isFilled = this->type & 1 << i;
-            if(isFilled)
+            if (isFilled)
             {
                 int checkingX = newPos.x + x;
                 int checkingY = newPos.y + y;
-                
+
                 //x out of bounds
-                if(checkingX < 0 || checkingX > 8)
+                if (checkingX < 0 || checkingX > 8)
                 {
                     foundInvalid = true;
                     break;
@@ -100,7 +99,7 @@ bool Tetromino::move(const glm::vec2& offset, const ofColor* field, int fieldHei
                     break;
                 }
             }
-            
+
             i++;
         }
     }
@@ -108,23 +107,21 @@ bool Tetromino::move(const glm::vec2& offset, const ofColor* field, int fieldHei
 
     if (!foundInvalid)
     {
-        i = 4;
+        i = 0;
         glm::vec2 pos = newPos;
         pos.y = -pos.y;
-        pos.y -= 2;
-        std::cout << "x: " << pos.x << " y: " << pos.y << std::endl;
-        
-        for (int y = 0; y < 2; ++y)
+        pos.y -= 4;
+
+        for (int y = 3; y >= 0; --y)
         {
             for (int x = 0; x < 4; ++x)
             {
-                //i = erst [4 - 7] dann [0 - 3]
                 const bool isFilled = this->type & 1 << i;
-                if(isFilled)
+                if (isFilled)
                 {
                     //Field busy
-                    
-                    if (field[((int)pos.x + x) * fieldHeight + ((int)pos.y + y)] != ofColor(0, 0, 0, 0))
+                    if (field[(static_cast<int>(pos.x) + x) * fieldHeight + (static_cast<int>(pos.y) + y)] != ofColor(
+                        0, 0, 0, 0))
                     {
                         returnValue = true;
                         foundInvalid = true;
@@ -133,18 +130,27 @@ bool Tetromino::move(const glm::vec2& offset, const ofColor* field, int fieldHei
                 }
 
                 i++;
-                i %= 8;
             }
 
-            if(returnValue) break;
+            if (returnValue) break;
         }
     }
 
-    
-    if(foundInvalid == false)
-        this->local_position = newPos;
-            
-    return returnValue;
+    return MoveResult(returnValue, foundInvalid, newPos);
+}
+
+
+/// Moves the tetromino, if the bounds are not exceeded. In case the an other tetromino is hit
+/// or the bottom is reached, this function returns true
+bool Tetromino::move(const glm::vec2& offset, const ofColor* field, int fieldHeight)
+{
+    const MoveResult& result = this->isValidMove(offset, field, fieldHeight);
+
+
+    if (result.foundInvalid == false)
+        this->local_position = result.newPos;
+
+    return result.canMove;
 }
 
 const glm::vec2& Tetromino::get_position() const
@@ -152,26 +158,60 @@ const glm::vec2& Tetromino::get_position() const
     return this->local_position;
 }
 
-void Tetromino::generate_new_random(Tetromino& tetromino)
+void Tetromino::rotate_tetromino(Tetromino& tetromino)
 {
-    static const std::map<int, const char*> enumStrings{
-        {Longi, "BlockType::Longi"},
-        {L, "BlockType::L"},
-        {LInv, "BlockType::LInv"},
-        {Quad, "BlockType::Quad"},
-        {Stair, "BlockType::Stair"},
-        {T, "BlockType::T"},
-        {StairInv, "BlockType::StairInv"},
+    static const std::map<int, int> intMapping = {
+        {0, Longi},
+        {1, L},
+        {2, LInv},
+        {3, Quad},
+        {4, Stair},
+        {5, T},
+        {6, StairInv},
+
+        {7,  Longi90},
+        {8,  L90},
+        {9,  LInv90},
+        {10, Quad90},
+        {11, Stair90},
+        {12, T90},
+        {13, StairInv90},
     };
 
+    static const std::map<int, int> blockMapping = {
+        {Longi, 0},
+        {L, 1},
+        {LInv, 2},
+        {Quad, 3},
+        {Stair, 4},
+        {T, 5},
+        {StairInv, 6},
+
+        {Longi90, 7},
+        {L90, 8},
+        {LInv90, 9},
+        {Quad90, 10},
+        {Stair90, 11},
+        {T90, 12},
+        {StairInv90, 13},
+};
+    int currentIndex = blockMapping.at(tetromino.get_block_type());
+
+    currentIndex = currentIndex >= 7 ? currentIndex - 7 : currentIndex + 7;
+
+    tetromino.set_block_type(static_cast<BlockType>(intMapping.at(currentIndex)));
+}
+
+void Tetromino::generate_new_random(Tetromino& tetromino)
+{
     static const std::map<int, int> intMapping = {
-        {0, 0b00001111},
-        {1, 0b10001110},
-        {2, 0b00010111},
-        {3, 0b00110011},
-        {4, 0b00110110},
-        {5, 0b00100111},
-        {6, 0b01100011},
+        {0, Longi},
+        {1, L},
+        {2, LInv},
+        {3, Quad},
+        {4, Stair},
+        {5, T},
+        {6, StairInv}
     };
 
     BlockType randomBlock = static_cast<BlockType>(intMapping.at(rand() % 7));
