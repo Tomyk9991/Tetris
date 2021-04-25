@@ -16,11 +16,11 @@ public:
     void set_position(int x, int y);
 
     bool move(const glm::vec2& offset, const ofColor* field, int fieldHeight = 20);
-    const MoveResult& isValidMove(const glm::vec2& offset, const ofColor* field, int fieldHeight = 20) const;
+    MoveResult isValidMove(const glm::vec2& offset, const ofColor* field, int fieldHeight = 20) const;
     
     const glm::vec2& get_position() const;
     static void generate_new_random(Tetromino& tetromino);
-    static void rotate_tetromino(Tetromino& tetromino);
+    static void rotate_tetromino(Tetromino& tetromino, ofColor* field);
 private:
     BlockType type = None;
     ofColor color;

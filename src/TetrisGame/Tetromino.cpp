@@ -67,7 +67,7 @@ void Tetromino::set_position(int x, int y)
     this->local_position.y = -y;
 }
 
-const MoveResult& Tetromino::isValidMove(const glm::vec2& offset, const ofColor* field, int fieldHeight) const
+MoveResult Tetromino::isValidMove(const glm::vec2& offset, const ofColor* field, int fieldHeight) const
 {
     glm::vec2 newPos = this->local_position + offset;
 
@@ -158,7 +158,7 @@ const glm::vec2& Tetromino::get_position() const
     return this->local_position;
 }
 
-void Tetromino::rotate_tetromino(Tetromino& tetromino)
+void Tetromino::rotate_tetromino(Tetromino& tetromino, ofColor* field)
 {
     static const std::map<int, int> intMapping = {
         {0, Longi},
@@ -194,12 +194,20 @@ void Tetromino::rotate_tetromino(Tetromino& tetromino)
         {Stair90, 11},
         {T90, 12},
         {StairInv90, 13},
-};
-    int currentIndex = blockMapping.at(tetromino.get_block_type());
+    };
+    BlockType oldBlockType = tetromino.get_block_type();
+    int currentIndex = blockMapping.at(oldBlockType);
 
     currentIndex = currentIndex >= 7 ? currentIndex - 7 : currentIndex + 7;
 
     tetromino.set_block_type(static_cast<BlockType>(intMapping.at(currentIndex)));
+    const MoveResult& result = tetromino.isValidMove(glm::vec2(0, 0), field);
+
+
+    if (result.foundInvalid == true)
+    {
+        tetromino.set_block_type(oldBlockType);
+    }
 }
 
 void Tetromino::generate_new_random(Tetromino& tetromino)

@@ -1,4 +1,5 @@
 #pragma once
+#include <ostream>
 #include <glm/vec2.hpp>
 
 struct MoveResult
@@ -10,6 +11,8 @@ struct MoveResult
     {
         
     }
+
+    friend std::ostream& operator<<(std::ostream& os, const MoveResult& move_result);
 
     const bool canMove = false;
     const bool foundInvalid = false;

@@ -110,6 +110,44 @@ void TetrisField::draw()
     draw_game_bounds(ofColor::darkGray);
     draw_game_field();
 
+    static const std::map<int, int> intMapping = {
+        {0, Longi},
+        {1, L},
+        {2, LInv},
+        {3, Quad},
+        {4, Stair},
+        {5, T},
+        {6, StairInv},
+
+        {7, Longi90},
+        {8, L90},
+        {9, LInv90},
+        {10, Quad90},
+        {11, Stair90},
+        {12, T90},
+        {13, StairInv90},
+    };
+    
+    // Tetromino mino;
+    // mino.set_color(ofColor(255, 75, 75));
+    //
+    // for (int i = 0; i < 14; ++i)
+    // {
+    //     int x = 0;
+    //
+    //     if(i >= 7)
+    //     {
+    //         mino.set_position(5, (i - 7) * 4 - 5);
+    //     }
+    //     else
+    //     {
+    //         mino.set_position(0, i * 4 - 5);
+    //     }
+    //         
+    //     mino.set_block_type(static_cast<BlockType>(intMapping.at(i)));
+    //     mino.render();
+    // }
+
     this->currentTetromino.render();
 }
 
@@ -135,16 +173,21 @@ void TetrisField::key_pressed(ofKeyEventArgs& e)
 
     if (e.key == 's' || e.key == ofKey::OF_KEY_DOWN)
     {
-        if(this->currentTetromino.move(glm::vec2(0, 1), this->gameField.data()))
+        if (this->currentTetromino.move(glm::vec2(0, 1), this->gameField.data()))
         {
             add_current_tetromino();
             Tetromino::generate_new_random(this->currentTetromino);
         }
     }
 
+    if (e.key == 'r')
+    {
+        Tetromino::generate_new_random(this->currentTetromino);
+    }
+
     if (e.key == ' ')
     {
-        Tetromino::rotate_tetromino(this->currentTetromino);
+        Tetromino::rotate_tetromino(this->currentTetromino, this->gameField.data());
     }
 }
 
