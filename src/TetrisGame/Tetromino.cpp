@@ -169,13 +169,29 @@ void Tetromino::rotate_tetromino(Tetromino& tetromino, ofColor* field)
         {5, T},
         {6, StairInv},
 
-        {7,  Longi90},
-        {8,  L90},
-        {9,  LInv90},
+        {7, Longi90},
+        {8, L90},
+        {9, LInv90},
         {10, Quad90},
         {11, Stair90},
         {12, T90},
         {13, StairInv90},
+
+        {14, Longi180},
+        {15, L180},
+        {16, LInv180},
+        {17, Quad180},
+        {18, Stair180},
+        {19, T180},
+        {20, StairInv180},
+
+        {21, Longi270},
+        {22, L270},
+        {23, LInv270},
+        {24, Quad270},
+        {25, Stair270},
+        {26, T270},
+        {27, StairInv270},
     };
 
     static const std::map<int, int> blockMapping = {
@@ -194,11 +210,29 @@ void Tetromino::rotate_tetromino(Tetromino& tetromino, ofColor* field)
         {Stair90, 11},
         {T90, 12},
         {StairInv90, 13},
+
+        {Longi180, 14},
+        {L180, 15},
+        {LInv180, 16},
+        {Quad180, 17},
+        {Stair180, 18},
+        {T180, 19},
+        {StairInv180, 20},
+
+        {Longi270, 21},
+        {L270, 22},
+        {LInv270, 23},
+        {Quad270, 24},
+        {Stair270, 25},
+        {T270, 26},
+        {StairInv270, 27},
     };
+
     BlockType oldBlockType = tetromino.get_block_type();
     int currentIndex = blockMapping.at(oldBlockType);
 
-    currentIndex = currentIndex >= 7 ? currentIndex - 7 : currentIndex + 7;
+    currentIndex += 7;
+    currentIndex = currentIndex % 28;
 
     tetromino.set_block_type(static_cast<BlockType>(intMapping.at(currentIndex)));
     const MoveResult& result = tetromino.isValidMove(glm::vec2(0, 0), field);
