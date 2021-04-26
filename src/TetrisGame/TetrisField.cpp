@@ -13,7 +13,10 @@ TetrisField::TetrisField()
     }
 
     ofAddListener(ofEvents().keyReleased, this, &TetrisField::key_pressed);
+    font.load("FiraCode-Bold.ttf", 20);
 
+    this->previousColor =  ofColor::fromHsb(ofRandom(0., 255.), 255., ofRandom(0., 255.));
+    this->targetColor =  ofColor::fromHsb(ofRandom(0., 255.), 255., ofRandom(0., 255.));
     Tetromino::generate_new_random(this->currentTetromino);
 }
 
@@ -39,8 +42,59 @@ void TetrisField::add_current_tetromino()
     }
 }
 
+void TetrisField::check_rows()
+{
+    const ofColor nothing(0, 0, 0, 0);
+    for (int y = height - 1; y >= 0; --y)
+    {
+        bool reducible = true;
+        
+        for (int x = 0; x < width - 1; ++x)
+        {
+            if (this->gameField[x * height + y] == nothing)
+            {
+                reducible = false;
+                break;
+            }
+        }
+
+
+        if (reducible == true)
+        {
+            reduce_row(y);
+        }
+    }
+}
+
+void TetrisField::reduce_row(int targetRow)
+{
+    score++;
+    for (int y = targetRow; y < height - 1; ++y)
+    {
+        for (int x = 0; x < width; ++x)
+        {
+            this->gameField[x * height + y].set(this->gameField[x * height + (y + 1)]);
+            this->gameField[x * height + (y + 1)].set(0, 0, 0, 0);
+        }
+    }
+
+    for (int x = 0; x < width; ++x)
+    {
+        this->gameField[x * height + (height - 1)].set(0, 0, 0, 0);
+    }
+}
+
 void TetrisField::update()
 {
+    this->elapsedTime += ofGetLastFrameTime();
+
+    if (this->elapsedTime >= 1.)
+    {
+        this->previousColor = this->targetColor;
+        this->targetColor = ofColor::fromHsb(ofRandom(0., 255.), 255., ofRandom(0., 255.));
+        this->elapsedTime = 0.;
+    }
+    
     if (ofGetElapsedTimef() - lastTime > TimeTick)
     {
         lastTime = ofGetElapsedTimef();
@@ -49,8 +103,21 @@ void TetrisField::update()
         {
             if (this->currentTetromino.move(glm::vec2(0, 1), this->gameField.data()))
             {
+                if (canLose)
+                {
+                    std::cout << "GAME OVER" << std::endl;
+                    gameOver = true;
+                    return;
+                }
                 add_current_tetromino();
+                check_rows();
                 Tetromino::generate_new_random(this->currentTetromino);
+                
+                this->canLose = true;
+            }
+            else
+            {
+                this->canLose = false;
             }
         }
     }
@@ -104,117 +171,59 @@ void TetrisField::draw_game_field()
     }
 }
 
+void TetrisField::draw_score()
+{
+    ofSetColor(previousColor.lerp(this->targetColor, elapsedTime));
+    
+    char str[17];
+    sprintf_s(str, "Score:\n%i", score * 1000);
+    font.drawString(str, 10, 50);
+}
+
 void TetrisField::draw()
 {
     draw_game_grid();
     draw_game_bounds(ofColor::darkGray);
     draw_game_field();
 
-    // static const std::map<int, int> intMapping = {
-    //     {0, Longi},
-    //     {1, L},
-    //     {2, LInv},
-    //     {3, Quad},
-    //     {4, Stair},
-    //     {5, T},
-    //     {6, StairInv},
-    //
-    //     {7, Longi90},
-    //     {8, L90},
-    //     {9, LInv90},
-    //     {10, Quad90},
-    //     {11, Stair90},
-    //     {12, T90},
-    //     {13, StairInv90},
-    //
-    //     {14, Longi180},
-    //     {15, L180},
-    //     {16, LInv180},
-    //     {17, Quad180},
-    //     {18, Stair180},
-    //     {19, T180},
-    //     {20, StairInv180},
-    //
-    //     {21, Longi270},
-    //     {22, L270},
-    //     {23, LInv270},
-    //     {24, Quad270},
-    //     {25, Stair270},
-    //     {26, T270},
-    //     {27, StairInv270},
-    // };
-    //
-    // Tetromino mino;
-    // mino.set_color(ofColor(255, 75, 75));
-    //
-    // for (int i = 0; i < 28; ++i)
-    // {
-    //     int x = 0;
-    //
-    //     if(i >= 7 & i <= 13)
-    //     {
-    //         mino.set_position(0, (i - 7) * 4 - 5);
-    //         mino.set_color(ofColor(255, 255, 75));
-    //     }
-    //     else if (i >= 14 && i <= 20)
-    //     {
-    //         mino.set_position(5, (i - 14) * 4 - 5);
-    //         mino.set_color(ofColor(75, 255, 75));
-    //     }
-    //     else if (i >= 21 && i <= 27)
-    //     {
-    //         mino.set_position(10, (i - 21) * 4 - 5);
-    //         mino.set_color(ofColor(75, 75, 255));
-    //     }
-    //     else
-    //     {
-    //         mino.set_position(-5, i * 4 - 5);
-    //     }
-    //         
-    //     mino.set_block_type(static_cast<BlockType>(intMapping.at(i)));
-    //     mino.render();
-    // }
-
     this->currentTetromino.render();
+    draw_score();
 }
 
 void TetrisField::key_pressed(ofKeyEventArgs& e)
 {
-    if (e.key == 'a' || e.key == ofKey::OF_KEY_LEFT)
+    if(!gameOver)
     {
-        if (this->currentTetromino.move(glm::vec2(-1, 0), this->gameField.data()))
+        if (e.key == 'a' || e.key == ofKey::OF_KEY_LEFT)
         {
-            add_current_tetromino();
+            this->currentTetromino.move(glm::vec2(-1, 0), this->gameField.data());
+        }
+
+        if (e.key == 'd' || e.key == ofKey::OF_KEY_RIGHT)
+        {
+            this->currentTetromino.move(glm::vec2(1, 0), this->gameField.data());
+        }
+
+        if (e.key == 's' || e.key == ofKey::OF_KEY_DOWN)
+        {
+            if (this->currentTetromino.move(glm::vec2(0, 1), this->gameField.data()))
+            {
+                add_current_tetromino();
+                check_rows();
+                Tetromino::generate_new_random(this->currentTetromino);
+                canLose = false;
+            }
+        }
+
+        if (e.key == 'r')
+        {
             Tetromino::generate_new_random(this->currentTetromino);
         }
-    }
 
-    if (e.key == 'd' || e.key == ofKey::OF_KEY_RIGHT)
-    {
-        if (this->currentTetromino.move(glm::vec2(1, 0), this->gameField.data()))
+        if (e.key == ' ')
         {
-            add_current_tetromino();
-            Tetromino::generate_new_random(this->currentTetromino);
+            Tetromino::rotate_tetromino(this->currentTetromino, this->gameField.data());
         }
-    }
-
-    if (e.key == 's' || e.key == ofKey::OF_KEY_DOWN)
-    {
-        if (this->currentTetromino.move(glm::vec2(0, 1), this->gameField.data()))
-        {
-            add_current_tetromino();
-            Tetromino::generate_new_random(this->currentTetromino);
-        }
-    }
-
-    if (e.key == 'r')
-    {
-        Tetromino::generate_new_random(this->currentTetromino);
-    }
-
-    if (e.key == ' ')
-    {
-        Tetromino::rotate_tetromino(this->currentTetromino, this->gameField.data());
     }
 }
 

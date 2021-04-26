@@ -3,18 +3,26 @@
 
 #include "ofColor.h"
 #include "ofEvents.h"
+#include "ofTrueTypeFont.h"
 #include "Tetromino.h"
 
 class TetrisField
 {
 public:
     TetrisField();
+
     void add_current_tetromino();
+    void check_rows();
+    void reduce_row(int targetRow);
+
     void update();
+
     void draw_game_bounds(const ofColor& baseColor) const;
     void draw_game_grid() const;
     void draw_game_field();
+    void draw_score();
     void draw();
+
     void key_pressed(ofKeyEventArgs &e);
 
     static int constexpr width = 10;
@@ -29,4 +37,12 @@ public:
 private:
     float lastTime = 0.;
     Tetromino currentTetromino;
+    bool canLose = false;
+    bool gameOver = false;
+    int score = 0;
+    ofTrueTypeFont font;
+
+    float elapsedTime = 0.0f;
+    ofColor targetColor;
+    ofColor previousColor;
 };

@@ -28,7 +28,7 @@ void Tetromino::render()
     }
 
 
-    const bool debug_draw = true;
+    const bool debug_draw = false;
     if (debug_draw)
     {
         ofSetColor(ofColor::red);
@@ -257,9 +257,10 @@ void Tetromino::generate_new_random(Tetromino& tetromino)
     };
 
     BlockType randomBlock = static_cast<BlockType>(intMapping.at(rand() % 7));
+    //BlockType randomBlock = Longi90;
     ofColor randomColor = ofColor(ofRandom(0, 255), ofRandom(0, 255), ofRandom(0, 255));
 
     tetromino.set_block_type(randomBlock);
     tetromino.set_color(randomColor);
-    tetromino.set_position(TetrisField::width / 2, TetrisField::height - 2);
+    tetromino.set_position(TetrisField::width / 2 - 2, TetrisField::height);
 }
