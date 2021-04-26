@@ -21,6 +21,7 @@ public:
     void draw_game_grid() const;
     void draw_game_field();
     void draw_score();
+    void draw_game_over();
     void draw();
 
     void key_pressed(ofKeyEventArgs &e);

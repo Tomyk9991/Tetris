@@ -180,14 +180,39 @@ void TetrisField::draw_score()
     font.drawString(str, 10, 50);
 }
 
+void TetrisField::draw_game_over()
+{
+    ofRectMode oldMode = ofGetRectMode();
+    ofSetRectMode(ofRectMode::OF_RECTMODE_CENTER);
+
+    ofSetColor(ofColor::red);
+    ofDrawRectRounded(ofGetWidth() / 2, ofGetHeight() / 2, ofGetWidth() / 1.5, ofGetHeight() / 1.5, 10);
+
+    ofSetColor(ofColor::white);
+    char str[35];
+    sprintf_s(str, "Score:\n%i\nPlay AGAINE (Enter)", score * 1000);
+
+    font.drawString(str, ofGetWidth() / 2 - font.stringWidth(str) / 2,
+        ofGetHeight() / 2 - font.stringHeight(str) / 2);
+    
+    ofSetRectMode(oldMode);
+}
+
 void TetrisField::draw()
 {
-    draw_game_grid();
-    draw_game_bounds(ofColor::darkGray);
-    draw_game_field();
+    if(!gameOver)
+    {
+        draw_game_grid();
+        draw_game_bounds(ofColor::darkGray);
+        draw_game_field();
 
-    this->currentTetromino.render();
-    draw_score();
+        this->currentTetromino.render();
+        draw_score();
+    }
+    else
+    {
+        draw_game_over();
+    }
 }
 
 void TetrisField::key_pressed(ofKeyEventArgs& e)
@@ -223,6 +248,13 @@ void TetrisField::key_pressed(ofKeyEventArgs& e)
         if (e.key == ' ')
         {
             Tetromino::rotate_tetromino(this->currentTetromino, this->gameField.data());
+        }
+    }
+    else
+    {
+        if(e.key == OF_KEY_RETURN)
+        {
+            *this = TetrisField();
         }
     }
 }
