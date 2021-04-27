@@ -160,38 +160,39 @@ const glm::vec2& Tetromino::get_position() const
 
 void Tetromino::rotate_tetromino(Tetromino& tetromino, ofColor* field)
 {
-    static const std::map<int, int> intMapping = {
-        {0, Longi},
-        {1, L},
-        {2, LInv},
-        {3, Quad},
-        {4, Stair},
-        {5, T},
-        {6, StairInv},
+    static const BlockType intMapping[28]
+    {
+        Longi,
+        L,
+        LInv,
+        Quad,
+        Stair,
+        T,
+        StairInv,
 
-        {7, Longi90},
-        {8, L90},
-        {9, LInv90},
-        {10, Quad90},
-        {11, Stair90},
-        {12, T90},
-        {13, StairInv90},
+        Longi90,
+        L90,
+        LInv90,
+        Quad90,
+        Stair90,
+        T90,
+        StairInv90,
 
-        {14, Longi180},
-        {15, L180},
-        {16, LInv180},
-        {17, Quad180},
-        {18, Stair180},
-        {19, T180},
-        {20, StairInv180},
+        Longi180,
+        L180,
+        LInv180,
+        Quad180,
+        Stair180,
+        T180,
+        StairInv180,
 
-        {21, Longi270},
-        {22, L270},
-        {23, LInv270},
-        {24, Quad270},
-        {25, Stair270},
-        {26, T270},
-        {27, StairInv270},
+        Longi270,
+        L270,
+        LInv270,
+        Quad270,
+        Stair270,
+        T270,
+        StairInv270
     };
 
     static const std::map<int, int> blockMapping = {
@@ -234,7 +235,7 @@ void Tetromino::rotate_tetromino(Tetromino& tetromino, ofColor* field)
     currentIndex += 7;
     currentIndex = currentIndex % 28;
 
-    tetromino.set_block_type(static_cast<BlockType>(intMapping.at(currentIndex)));
+    tetromino.set_block_type(intMapping[currentIndex]);
     const MoveResult& result = tetromino.isValidMove(glm::vec2(0, 0), field);
 
 
@@ -246,18 +247,12 @@ void Tetromino::rotate_tetromino(Tetromino& tetromino, ofColor* field)
 
 void Tetromino::generate_new_random(Tetromino& tetromino)
 {
-    static const std::map<int, int> intMapping = {
-        {0, Longi},
-        {1, L},
-        {2, LInv},
-        {3, Quad},
-        {4, Stair},
-        {5, T},
-        {6, StairInv}
+    static BlockType intMapping[7]
+    {
+        Longi, L, LInv, Quad, Stair, T, Stair90
     };
 
-    BlockType randomBlock = static_cast<BlockType>(intMapping.at(rand() % 7));
-    //BlockType randomBlock = Longi90;
+    BlockType randomBlock = static_cast<BlockType>(intMapping[rand() % 7]);
     ofColor randomColor = ofColor(ofRandom(0, 255), ofRandom(0, 255), ofRandom(0, 255));
 
     tetromino.set_block_type(randomBlock);
